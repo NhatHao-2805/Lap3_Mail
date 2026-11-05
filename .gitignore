@@ -4,10 +4,7 @@
 *.db-journal
 *.db-wal
 *.db-shm
-/downloads/
-/src/downloads/
 *.log
-.env
 .idea/
 .vscode/
 *.iml

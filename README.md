@@ -1,27 +1,24 @@
-# Chat — Lab 1 Lập trình mạng
+# Lab 3 — Mail Server & Mail Client
 
-Ứng dụng chat bằng **Java Swing**, kết hợp **TCP client–server**, **UDP Multicast**, **UDP Broadcast** và **SQLite**. Mã nguồn được tách từ `AllLab/Lab1_Chat`, đóng gói để chạy độc lập trên Windows bằng JDK 21.
+Ứng dụng mail desktop bằng Java Swing cho môn Lập trình mạng. Dự án mô phỏng một hệ thống mail trong LAN với **SMTP**, **POP3**, **SQLite** và giao diện client theo phong cách hộp thư hiện đại.
 
 ## Chức năng
 
-- Chat phòng chung và nhắn tin riêng qua TCP; hiển thị danh sách người dùng online.
-- Gửi văn bản tiếng Việt và emoji.
-- Gửi file, video và ghi âm giọng nói; nhận file vào `downloads/`.
-- Chat nhóm UDP Multicast và thông báo UDP Broadcast trong LAN.
-- Dò IP server bằng UDP Broadcast, hoặc nhập IP thủ công.
-- SQLite lưu tài khoản và thông tin tin nhắn qua server.
-- Mở nhiều client để demo với các tên người dùng khác nhau.
-
-Video được truyền dưới dạng file, không phải gọi video trực tiếp. Việc mở video phụ thuộc trình phát trên máy nhận.
+- Gửi thư nội bộ qua SMTP trên cổng `2525`.
+- Nhận, đọc và xóa thư qua POP3 trên cổng `1100`.
+- Đăng ký, đăng nhập và đăng xuất tài khoản mail.
+- Lưu tài khoản và email trong SQLite.
+- Gửi thư qua Gmail SSL (`smtp.gmail.com:465`) với Google App Password.
+- Giao diện quản lý server, nhật ký SMTP/POP3, tìm kiếm hộp thư và soạn thư.
+- Mật khẩu tài khoản mới được băm PBKDF2-HMAC-SHA256; mật khẩu mẫu cũ được nâng cấp sau lần đăng nhập thành công đầu tiên.
 
 ## Yêu cầu
 
-- **JDK 21 trở lên** (gồm cả `java` và `javac`); nên dùng cùng JDK 21 trên các máy demo.
-- Windows có giao diện đồ họa để chạy các file `.bat`.
-- Hai máy cùng mạng LAN/Wi-Fi khi demo qua mạng; micro và loa nếu thử ghi âm.
-- Thư viện SQLite JDBC và SLF4J đã có trong `lib/`; không cần Maven hay cài SQLite riêng.
+- Windows 10/11 và **JDK 21 trở lên**. Cần cả `java` và `javac`.
+- Không cần Maven, Gradle hay cài SQLite riêng: các file JAR cần thiết đã có trong `lib/`.
+- Khi demo qua LAN: các máy cùng Wi-Fi/LAN và Windows Firewall cho phép Java nhận kết nối ở cổng 2525, 1100.
 
-Kiểm tra trong PowerShell:
+Kiểm tra Java trong PowerShell:
 
 ```powershell
 $env:JAVA_HOME
@@ -29,7 +26,7 @@ $env:JAVA_HOME
 & "$env:JAVA_HOME\bin\javac.exe" -version
 ```
 
-Ví dụ `JAVA_HOME`: `C:\Program Files\Java\jdk-21` (không thêm `\bin`). Các script ưu tiên `JAVA_HOME`, nếu không có thì dùng Java trên `PATH`. Sau khi đổi biến môi trường, mở lại cửa sổ terminal/File Explorer nếu môi trường cũ vẫn còn hiệu lực.
+Ví dụ `JAVA_HOME`: `C:\Program Files\Java\jdk-21`. Script sẽ ưu tiên biến này; nếu không có thì dùng Java trong `PATH`.
 
 ## Tải mã nguồn
 
@@ -38,110 +35,68 @@ git clone https://github.com/NhatHao-2805/Lap3_Mail.git
 cd Lap3_Mail
 ```
 
-Hoặc chọn **Code → Download ZIP**, giải nén toàn bộ rồi mở thư mục dự án.
-
 ## Chạy trên một máy
 
-1. Mở `run_server.bat`. Server tự biên dịch và khởi động, lắng nghe TCP cổng **8888**. Kiểm tra nhật ký server đã báo đang lắng nghe.
-2. Mở `run_client.bat`. Nhập Server IP `127.0.0.1`, port `8888`.
-3. Chọn tên người dùng, nhập mật khẩu và bấm **Vào phòng Chat**. Tên chưa có sẽ được tạo khi đăng nhập lần đầu; tên đã có cần đúng mật khẩu.
-4. Mở thêm `run_client.bat` và dùng tên khác để thử chat phòng chung, chat riêng, gửi file và ghi âm.
+1. Mở `run_server.bat`. Cửa sổ **VKU Mail Server** tự biên dịch mã nguồn và khởi động SMTP `2525`, POP3 `1100`.
+2. Mở `run_client.bat` trong cùng thư mục.
+3. Ở màn hình tài khoản, nhập Server Host `127.0.0.1`, SMTP `2525`, POP3 `1100`.
+4. Chọn **Tạo tài khoản mới** để đăng ký email, họ tên và mật khẩu; sau đó đăng nhập. Hoặc dùng tài khoản mẫu:
 
-Cả hai script tự biên dịch bằng UTF-8 và tạo class tương thích Java 21, tránh lỗi lấy class từ máy chạy JDK mới hơn. Cửa sổ console giữ lại thông báo khi khởi động lỗi.
+   | Email | Mật khẩu |
+   |---|---|
+   | `dat@vku.udn.vn` | `123456` |
+   | `friend@vku.udn.vn` | `123456` |
+   | `admin@vku.udn.vn` | `admin123` |
 
-## Chạy trên hai máy
+5. Bấm **Soạn thư mới**, gửi tới một tài khoản khác, sau đó bấm **Làm mới hộp thư** ở client nhận.
 
-### Máy 1 — Server
+## Chạy trên hai máy trong LAN
 
-1. Chạy `run_server.bat`.
-2. Xem **Server IP LAN** trong giao diện. Có thể dùng `ipconfig` để xác nhận IPv4 của Wi-Fi/Ethernet đang kết nối; tránh IP adapter VPN/ảo.
-3. Cho phép Java qua Windows Firewall trên mạng riêng nếu được hỏi.
+1. Trên máy 1, chạy `run_server.bat` và xem địa chỉ IPv4 hiển thị trong giao diện server.
+2. Trên máy 2, chạy `run_client.bat`; thay `127.0.0.1` bằng IP LAN của máy 1, giữ nguyên cổng SMTP `2525` và POP3 `1100`.
+3. Đăng nhập hai tài khoản khác nhau và gửi thư nội bộ.
 
-### Máy 2 — Client
+`127.0.0.1` luôn là chính máy đang chạy client, vì vậy chỉ dùng địa chỉ này khi server và client cùng máy. Nếu không kết nối được, kiểm tra server đã chạy, IP LAN, firewall và hai máy có cùng mạng hay không.
 
-1. Chạy `run_client.bat`.
-2. Nhập IP LAN của máy 1, ví dụ `192.168.1.15`, port `8888`; hoặc bấm **Dò LAN**.
-3. Nhập tên và mật khẩu, bấm **Vào phòng Chat**.
-4. Máy 1 cũng có thể mở thêm client để hai bên trao đổi.
+## Cổng và giao thức
 
-**Không nhập `127.0.0.1` trên máy 2 để kết nối máy 1**: địa chỉ đó luôn là chính máy đang chạy client. Không cần chạy server trên cả hai máy.
-
-## Các cổng và giao thức
-
-| Chức năng | Giao thức / địa chỉ | Cổng |
+| Chức năng | Giao thức | Cổng |
 |---|---|---:|
-| Đăng nhập, chat chung/riêng, file, voice và video | TCP tới máy server | 8888 |
-| Tự tìm server | UDP Broadcast | 8889 |
-| Thông báo toàn LAN | UDP Broadcast `255.255.255.255` | 8890 |
-| Chat nhóm | UDP Multicast `230.0.0.1` | 4446 |
+| Gửi mail nội bộ | SMTP | 2525 |
+| Đăng ký/đăng nhập, nhận thư | POP3 + lệnh `REGISTER` mở rộng | 1100 |
+| Gửi qua Gmail | SMTP over SSL | 465 |
 
-Multicast/Broadcast phụ thuộc thiết bị mạng và firewall. Wi-Fi khách, AP isolation, VPN hoặc router chặn multicast có thể làm các chức năng UDP không hoạt động dù TCP vẫn chat được. Nhiều client cùng máy có thể nhận broadcast khác nhau tùy cách hệ điều hành chia sẻ cổng; nên demo UDP bằng hai máy thật.
+## Kiểm thử
 
-## Kịch bản demo
+Chạy trong PowerShell tại thư mục dự án:
 
-1. Mở server và 2–6 client với tên khác nhau.
-2. Gửi tin tiếng Việt và emoji vào phòng chung.
-3. Chọn một người online và gửi tin riêng.
-4. Gửi file nhỏ; kiểm tra file trong `downloads/` ở máy nhận.
-5. Thử ghi âm và gửi video ngắn qua TCP.
-6. Chọn nhóm Multicast, sau đó kênh Broadcast để thử UDP.
-7. Xem nhật ký và database phía server.
+```powershell
+& "$env:JAVA_HOME\bin\javac.exe" -encoding UTF-8 -cp "lib/*" -d build/check src/ui/*.java src/client/*.java src/server/*.java tests/AccountIntegrationTest.java
+New-Item -ItemType Directory -Force build/account-test | Out-Null
+Push-Location build/account-test
+& "$env:JAVA_HOME\bin\java.exe" -cp "../check;../../lib/*" AccountIntegrationTest
+Pop-Location
+```
 
-## Cấu trúc
+## Lưu ý
+
+- Đây là bài thực hành dành cho localhost/LAN tin cậy. POP3 và SMTP nội bộ chưa dùng TLS; không dùng mật khẩu thật và không mở server trực tiếp ra Internet.
+- Base64 trong lệnh đăng ký chỉ dùng để biểu diễn dữ liệu trong giao thức thử nghiệm, không mã hóa đường truyền.
+- Chỉ chọn Gmail khi đã bật bảo mật phù hợp và dùng **Google App Password**; không nhập mật khẩu Gmail thông thường.
+- Các file sinh khi chạy (`build/`, `mail_database.db`) bị bỏ qua bởi Git. Xóa `src/mail_database.db` nếu muốn khởi tạo lại toàn bộ tài khoản và hộp thư mẫu.
+- Client hiện tập trung vào Inbox; chưa triển khai đầy đủ thư đã gửi, đánh dấu sao và thùng rác.
+
+## Cấu trúc dự án
 
 ```text
-Chat/
+Lap3_Mail/
 ├── src/
-│   ├── common/          # Message, MessageType dùng chung
-│   ├── server/          # ChatServer, ClientHandler, DatabaseManager
-│   └── client/          # Swing UI, TCP, UDP và ghi âm
+│   ├── client/          # Swing client, SMTP/POP3 và tài khoản
+│   ├── server/          # SMTP server, POP3 server, SQLite
+│   └── ui/              # Bộ giao diện dùng chung
+├── tests/               # Kiểm thử đăng ký/đăng nhập
 ├── lib/                 # SQLite JDBC và SLF4J
-├── compile.bat
 ├── run_server.bat
 ├── run_client.bat
 └── README.md
 ```
-
-Sinh khi chạy: `build/classes/`, `chat_database.db` trên máy server, `downloads/` trên máy client. Các dữ liệu này được bỏ qua bởi Git; database và file cá nhân từ AllLab không được đưa vào repository.
-
-## Biên dịch/chạy thủ công
-
-Trong PowerShell, tại thư mục `Chat`:
-
-```powershell
-.\compile.bat
-& "$env:JAVA_HOME\bin\java.exe" -cp 'build/classes;lib/*' server.ChatServer
-# Mở PowerShell khác trong cùng thư mục:
-& "$env:JAVA_HOME\bin\java.exe" -cp 'build/classes;lib/*' client.ChatClientGUI
-```
-
-Trên Linux/macOS có desktop và JDK 21, có thể biên dịch/chạy thủ công bằng dấu `:` thay cho `;` trong classpath; các script `.bat` chỉ dành cho Windows. Chưa kiểm tra giao diện trên Linux/macOS.
-
-## Lỗi thường gặp và lưu ý
-
-| Hiện tượng | Kiểm tra / xử lý |
-|---|---|
-| `UnsupportedClassVersionError` | Dùng JDK 21 trở lên cho cả `java` và `javac`; đặt đúng `JAVA_HOME`, chạy lại script để biên dịch. |
-| Không tìm thấy `java` / `javac` | Cài **JDK**, kiểm tra `JAVA_HOME` hoặc `PATH`; JRE riêng không đủ để tự biên dịch. |
-| Không kết nối được | Mở server trước; kiểm tra IP, TCP 8888, cùng LAN và firewall. |
-| `Address already in use` | Đã có server hoặc ứng dụng khác dùng cổng; đóng bản server bị mở trùng. |
-| Không dò được server | Nhập IP thủ công; kiểm tra UDP 8889 và thiết lập mạng. |
-| Sai mật khẩu / tên đang online | Dùng mật khẩu lúc tạo tài khoản; mỗi client đang chạy cần tên riêng. |
-| SQLite không lưu dữ liệu | Giữ đủ các JAR trong `lib/`, kiểm tra log `[DB]` và quyền ghi thư mục. |
-| Không ghi/phát được voice | Kiểm tra micro, quyền micro của Java, thiết bị âm thanh và loa. |
-| File lớn gây chậm hoặc thiếu bộ nhớ | File được đọc vào RAM; dùng file nhỏ khi demo, chưa có truyền theo khối/giới hạn dung lượng. |
-
-### Giới hạn của bài thực hành
-
-- Đây là ứng dụng học tập trong LAN tin cậy: TCP chưa mã hóa TLS, mật khẩu đang lưu dạng văn bản trong SQLite; không dùng mật khẩu thật hoặc mở server ra Internet.
-- Khi SQLite không khả dụng, code hiện cho phép đăng nhập mà không xác thực database và không lưu lịch sử. Kiểm tra log database trước khi demo xác thực.
-- Server đang gửi 30 bản ghi gần nhất cho người mới đăng nhập, chưa lọc riêng lịch sử tin nhắn riêng theo người nhận. Không dùng dữ liệu riêng tư khi demo.
-- Database lưu thông tin tin nhắn/tên file, không lưu lại toàn bộ byte đính kèm để tải lại từ lịch sử sau khi restart.
-- UDP không bảo đảm giao nhận/thứ tự; file, voice và video dùng TCP. Cả client vẫn cần đăng nhập TCP trước khi vào giao diện có các kênh UDP.
-
-## Thư viện
-
-- `sqlite-jdbc-3.45.1.0.jar`: Xerial SQLite JDBC.
-- `slf4j-api-2.0.17.jar`, `slf4j-simple-2.0.17.jar`: SLF4J.
-
-Các thư viện giữ giấy phép của dự án gốc trong metadata JAR. Repository chưa đặt giấy phép riêng cho mã nguồn ứng dụng.

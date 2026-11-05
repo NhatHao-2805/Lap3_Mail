@@ -1,20 +1,20 @@
 @echo off
 setlocal
 chcp 65001 > nul
-cd /d "%~dp0"
-call "%~dp0compile.bat"
-if errorlevel 1 goto :error
 set "JAVA_CMD=java"
+set "JAVAC_CMD=javac"
 if defined JAVA_HOME (
     if exist "%JAVA_HOME%\bin\java.exe" set "JAVA_CMD=%JAVA_HOME%\bin\java.exe"
+    if exist "%JAVA_HOME%\bin\javac.exe" set "JAVAC_CMD=%JAVA_HOME%\bin\javac.exe"
 )
-echo [RUN] Java: %JAVA_CMD%
-"%JAVA_CMD%" -version
+cd /d "%~dp0"
+if not exist "build\server" mkdir "build\server"
+"%JAVAC_CMD%" -encoding UTF-8 -cp "lib/*" -d "build\server" src\ui\*.java src\server\*.java
 if errorlevel 1 goto :error
-"%JAVA_CMD%" -cp "build/classes;lib/*" server.ChatServer
+"%JAVA_CMD%" -cp "build\server;lib/*" server.MailServer
 if errorlevel 1 goto :error
 exit /b 0
 :error
-echo [ERROR] Khong the khoi dong. Xem loi o tren.
+echo [ERROR] Khong the chay Mail Server. Kiem tra JDK, JAVA_HOME va loi o tren.
 pause
 exit /b 1

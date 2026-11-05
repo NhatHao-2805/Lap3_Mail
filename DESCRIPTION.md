@@ -1,1 +1,1 @@
-Ứng dụng chat Java Swing cho Lab 1 Lập trình mạng: TCP client-server, UDP Multicast/Broadcast, gửi file, voice, video và SQLite. Chạy độc lập với JDK 21.
+Ứng dụng mail Java Swing cho Lab 3 Lập trình mạng: SMTP, POP3, SQLite, đăng ký/đăng nhập và gửi thư nội bộ trong LAN.
